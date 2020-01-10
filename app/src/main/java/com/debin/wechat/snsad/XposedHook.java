@@ -4,15 +4,21 @@ import android.content.Context;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+
 import com.debin.wechat.snsad.util.LogUtil;
 import com.debin.wechat.snsad.util.XPrefUtils;
-import de.robv.android.xposed.*;
-import de.robv.android.xposed.callbacks.XC_LoadPackage;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.Set;
+
+import de.robv.android.xposed.IXposedHookLoadPackage;
+import de.robv.android.xposed.XC_MethodHook;
+import de.robv.android.xposed.XC_MethodReplacement;
+import de.robv.android.xposed.XposedBridge;
+import de.robv.android.xposed.XposedHelpers;
+import de.robv.android.xposed.callbacks.XC_LoadPackage;
 
 public class XposedHook implements IXposedHookLoadPackage {
     private static String TAG = XposedHook.class.getSimpleName();
@@ -27,11 +33,11 @@ public class XposedHook implements IXposedHookLoadPackage {
         }
 
         if ("com.tencent.mm".equals(lpParam.packageName)) {
-            hookA(lpParam);
-            hookC(lpParam);
+            WeChatAdHook.getInstance().hideWeChatSnsTimeLineUIAD(lpParam);
         }
     }
 
+    @Deprecated
     private void hookA(final XC_LoadPackage.LoadPackageParam lpParam) {
         try {
             String className = "com.tencent.mm.plugin.sns.ui.a.a";
@@ -87,6 +93,7 @@ public class XposedHook implements IXposedHookLoadPackage {
         }
     }
 
+    @Deprecated
     private void hookC(final XC_LoadPackage.LoadPackageParam lpParam) {
         try {
             final String className = "com.tencent.mm.plugin.sns.ui.a.b.a";
