@@ -23,6 +23,7 @@ public class WeChatAdHook {
 
     private static final String TAG = "WeChatAd";
     private static Map<Integer, Integer> AD_LINEARLAYOUT_MAP;
+    private static Map<Integer, String> BASEADAPTER_CLASS_NAME_MAP;
     private Context context = null;
 
     public static WeChatAdHook getInstance() {
@@ -31,11 +32,17 @@ public class WeChatAdHook {
 
     @SuppressLint("UseSparseArrays")
     private WeChatAdHook() {
-        AD_LINEARLAYOUT_MAP = new HashMap<>();
         //在此添加适配的微信版本
+
+        AD_LINEARLAYOUT_MAP = new HashMap<>();
         //key：微信版本号，value：朋友圈广告条目右上角广告标识LinearLayout的id
         AD_LINEARLAYOUT_MAP.put(1363, 0x7F111B0F);
         AD_LINEARLAYOUT_MAP.put(1545, 0x7F121E84);
+
+        BASEADAPTER_CLASS_NAME_MAP = new HashMap<>();
+        //key：微信版本号，value：朋友圈列表的ListView适配器类名
+        BASEADAPTER_CLASS_NAME_MAP.put(1363, "com.tencent.mm.plugin.sns.ui.a.a");
+        BASEADAPTER_CLASS_NAME_MAP.put(1545, "com.tencent.mm.plugin.sns.ui.a.c");
     }
 
     private static class WeChatHookUtils {
@@ -69,7 +76,7 @@ public class WeChatAdHook {
                                     return;
                                 }
 
-                                hideAD(context.getClassLoader(), AD_LINEARLAYOUT_MAP.get(versionCode));
+                                hideAD(context.getClassLoader(), AD_LINEARLAYOUT_MAP.get(versionCode), BASEADAPTER_CLASS_NAME_MAP.get(versionCode));
                             }
                         });
             } else {
@@ -95,10 +102,9 @@ public class WeChatAdHook {
         return versionCode;
     }
 
-    private void hideAD(ClassLoader classLoader, final int adLinearLayoutId) {
+    private void hideAD(ClassLoader classLoader, final int adLinearLayoutId, String baseAdapterClassName) {
         try {
-            String className = "com.tencent.mm.plugin.sns.ui.a.c";
-            final Class clazz = classLoader.loadClass(className);
+            final Class clazz = classLoader.loadClass(baseAdapterClassName);
             if (clazz != null) {
                 Constructor[] constructors = clazz.getDeclaredConstructors();
                 for (Constructor constructor : constructors) {
@@ -130,7 +136,7 @@ public class WeChatAdHook {
                             }
                         });
             } else {
-                LogUtil.e(TAG, "class " + className + " not found");
+                LogUtil.e(TAG, "class " + baseAdapterClassName + " not found");
             }
         } catch (Throwable e) {
             LogUtil.e(TAG, "hideAD err:" + Log.getStackTraceString(e));
